@@ -1,46 +1,97 @@
 import { React, useState } from 'react';
-import { Button, TextInput } from 'react-native-paper';
+import { Button, Menu, TextInput } from 'react-native-paper';
 import { View, Text, StyleSheet } from 'react-native';
+import * as axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import MainNavigation from './MainNavigation';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { MenuProvider } from 'react-native-popup-menu';
 
 function Login() {
-    const [text, setText] = useState('');
-    const [password, setPassword] = useState('');
+    const [text, setText] = useState('0373007856');
+    const [password, setPassword] = useState('123');
     const [hidePass, setHidePass] = useState(true);
-    return (
-        <View
-            style={{ backgroundColor: 'f2f2f2', flex: 1, justifyContent: 'center' }}>
-            <View style={styles.container}>
-                <Text style={styles.textTitle}> Login </Text>
-                <TextInput
-                    keyboardType='numeric'
-                    label={'Phone'}
-                    value={text}
-                    onChangeText={text => setText(text)}
-                    style={styles.textInput}
-                    mode="outlined"
-                />
-                <TextInput
-                    label={'Password'}
-                    value={password}
-                    onChangeText={password => setPassword(password)}
-                    style={styles.textInput}
-                    mode="outlined"
-                    secureTextEntry={hidePass ? true : false}
-                    right={
-                        <TextInput.Icon icon={hidePass ? "eye-off-outline" : "eye-outline"} onPress={() => setHidePass(!hidePass)} />
-                    }
-                />
-                <Button
-                    mode="contained"
-                    onPress={() => console.log('Pressed')}
-                    style={styles.button}>
-                    <Text style={{ color: 'white', fontSize: 18 }}> Login </Text>
-                </Button>
-            </View>
-        </View>
-    );
-}
+    const [logined, setLogined] = useState(false);
 
+    //handle login authentication
+    const axios = require('axios').default;
+    function authentication() {
+        axios.post('https://kami-backend-5rs0.onrender.com/auth', {
+            phone: text,
+            password: password
+        })
+            .then(function (response) {
+                storeData(response.data);
+                storeToken(response.data.token);
+                setLogined(true);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+    authentication();
+
+    //storing data
+    const storeToken = async (value) => {
+        try {
+          await AsyncStorage.setItem('token', value);
+        } catch (e) {
+          // saving error
+        }
+      };
+    const storeData = async (value) => {
+        try {
+            const jsonValue = JSON.stringify(value);
+            await AsyncStorage.setItem('data', jsonValue);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    if (logined) {
+        return (
+            <SafeAreaProvider>
+                <MenuProvider>
+                    <MainNavigation />
+                </MenuProvider>
+            </SafeAreaProvider>
+        )
+    } else
+        return (
+            <View
+                style={{ backgroundColor: 'f2f2f2', flex: 1, justifyContent: 'center' }}>
+                <View style={styles.container}>
+                    <Text style={styles.textTitle}> Login </Text>
+                    <TextInput
+                        keyboardType='numeric'
+                        label={'Phone'}
+                        value={text}
+                        onChangeText={text => setText(text)}
+                        style={styles.textInput}
+                        mode="outlined"
+                    />
+                    <TextInput
+                        label={'Password'}
+                        value={password}
+                        onChangeText={password => setPassword(password)}
+                        style={styles.textInput}
+                        mode="outlined"
+                        secureTextEntry={hidePass ? true : false}
+                        right={
+                            <TextInput.Icon icon={hidePass ? "eye-off-outline" : "eye-outline"} onPress={() => setHidePass(!hidePass)} />
+                        }
+                    />
+                    <Button
+                        mode="contained"
+                        onPress={() => authentication()}
+                        style={styles.button}>
+                        <Text style={{ color: 'white', fontSize: 18 }}> Login </Text>
+                    </Button>
+                </View>
+            </View>
+        );
+}
 const styles = StyleSheet.create({
     container: {
         marginHorizontal: 40,
