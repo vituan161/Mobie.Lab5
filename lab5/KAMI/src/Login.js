@@ -1,6 +1,6 @@
-import { React, useState } from 'react';
+import { React, useState, useEffect } from 'react';
 import { Button, Menu, TextInput } from 'react-native-paper';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import * as axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -9,14 +9,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MenuProvider } from 'react-native-popup-menu';
 
 function Login() {
-    const [text, setText] = useState('0373007856');
-    const [password, setPassword] = useState('123');
+    const [text, setText] = useState('');
+    const [password, setPassword] = useState('');
     const [hidePass, setHidePass] = useState(true);
     const [logined, setLogined] = useState(false);
 
     //handle login authentication
-    const axios = require('axios').default;
+
     function authentication() {
+        const axios = require('axios').default;
         axios.post('https://kami-backend-5rs0.onrender.com/auth', {
             phone: text,
             password: password
@@ -28,18 +29,18 @@ function Login() {
             })
             .catch(function (error) {
                 console.log(error);
+                Alert.alert("Wrong phone number or password");
             });
     }
-    authentication();
 
     //storing data
     const storeToken = async (value) => {
         try {
-          await AsyncStorage.setItem('token', value);
+            await AsyncStorage.setItem('token', value);
         } catch (e) {
-          // saving error
+            // saving error
         }
-      };
+    };
     const storeData = async (value) => {
         try {
             const jsonValue = JSON.stringify(value);
